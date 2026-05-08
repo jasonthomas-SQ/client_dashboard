@@ -188,7 +188,7 @@
 
     .hero-totals {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -215,6 +215,13 @@
       letter-spacing: -0.03em;
       line-height: 1;
       color: #FFFFFF;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #94A3B8;
+      margin-top: 6px;
     }
 
     @media (max-width: 640px) {
@@ -255,8 +262,15 @@
   </div>
 
   <div class="table-section">
-    <div class="section-title">Channel Breakdown</div>
+    <div class="section-title">EDM Campaign Results</div>
     <div id="breakdown-table-container"></div>
+  </div>
+
+  <div class="chart-section">
+    <div class="section-title">Website Traffic by Source</div>
+    <div class="chart-container">
+      <canvas id="traffic-chart"></canvas>
+    </div>
   </div>
 
 </div>
@@ -296,7 +310,15 @@ const DEMO_DATA = {
       ["Direct",          "7,200",  "24,000",    "220"],
       ["Referral",        "4,200",  "13,000",    "100"]
     ]
-  }
+  },
+  traffic: [
+    ["Organic Search", "3,200"],
+    ["Email",          "1,840"],
+    ["Social Media",   "1,150"],
+    ["Direct",           "820"],
+    ["Referral",         "430"],
+    ["Paid",             "310"]
+  ]
 };
 
 const CHART_COLOURS = [
@@ -390,9 +412,15 @@ function deltaClass(change) {
   return "neutral";
 }
 
-function renderHero(kpis) {
+function renderHero(kpis, bundle) {
   const totalUnits = kpis.reduce((sum, k) => sum + (parseFloat(k.rawValue) || 0), 0);
   const totalSales = kpis.reduce((sum, k) => sum + (parseFloat(k.rawDollar) || 0), 0);
+  const bundleCard = bundle ? `
+    <div class="hero-card">
+      <div class="hero-label">Bundle Sales</div>
+      <div class="hero-value">${Number(bundle.units).toLocaleString()}</div>
+      <div class="hero-sub">$${Number(bundle.dollars).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    </div>` : "";
   document.getElementById("hero-totals").innerHTML = `
     <div class="hero-card">
       <div class="hero-label">Total Units Sold</div>
@@ -402,6 +430,7 @@ function renderHero(kpis) {
       <div class="hero-label">Total Sales</div>
       <div class="hero-value">$${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
+    ${bundleCard}
   `;
 }
 
@@ -412,7 +441,6 @@ function renderKPIs(kpis) {
       <div class="kpi-label">${esc(kpi.metric)}</div>
       <div class="kpi-value">${esc(kpi.value)}</div>
       ${kpi.dollar ? `<div class="kpi-dollar">${esc(kpi.dollar)}</div>` : ""}
-      ${kpi.change ? `<span class="kpi-delta ${deltaClass(kpi.change)}">${esc(kpi.change)}</span>` : ""}
     </div>
   `).join("");
 }
@@ -518,19 +546,79 @@ function renderTable(breakdown) {
   });
 }
 
+function renderTrafficChart(rows) {
+  const labels   = rows.map(r => r[0]);
+  const values   = rows.map(r => parseFloat(String(r[1]).replace(/,/g, "")) || 0);
+  const maxVal   = Math.max(...values);
+  const colours  = values.map(v => {
+    const opacity = 0.4 + 0.6 * (v / (maxVal || 1));
+    return `rgba(37,99,235,${opacity.toFixed(2)})`;
+  });
+
+  new Chart(document.getElementById("traffic-chart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Sessions",
+        data: values,
+        backgroundColor: colours,
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1E293B",
+          titleColor: "#F1F5F9",
+          bodyColor: "#CBD5E1",
+          padding: 12,
+          cornerRadius: 6,
+          callbacks: { label: ctx => " " + ctx.parsed.x.toLocaleString() + " sessions" }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "#F1F5F9" },
+          ticks: {
+            color: "#64748B",
+            font: { size: 12 },
+            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + "k" : v
+          }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: "#334155", font: { size: 13 } }
+        }
+      }
+    }
+  });
+}
+
 async function loadLiveData() {
   try {
-    const [kpiSheet, trendsSheet, breakdownSheet] = await Promise.all([
+    const [kpiSheet, trendsSheet, breakdownSheet, trafficSheet] = await Promise.all([
       fetchSheet("KPIs"),
       fetchSheet("Trends"),
-      fetchSheet("Breakdown")
+      fetchSheet("Breakdown"),
+      fetchSheet("Traffic")
     ]);
 
     let lastUpdated = "";
+    let bundleSales = null;
     const kpis = kpiSheet.rows
       .filter(r => {
         if (r[0].trim().toLowerCase().startsWith("last updated")) {
           lastUpdated = r[0].replace(/^last updated\s*:?\s*/i, "").trim();
+          return false;
+        }
+        if (/bundle\s*sales/i.test(r[0].replace(/\s+/g, " ").trim())) {
+          bundleSales = { units: r[1] || 0, dollars: r[3] || 0 };
           return false;
         }
         return true;
@@ -569,10 +657,11 @@ async function loadLiveData() {
       });
 
     renderHeader(lastUpdated);
-    renderHero(kpis);
+    renderHero(kpis, bundleSales);
     renderKPIs(kpis);
     renderChart({ headers: trendsSheet.headers, rows: trendsSheet.rows });
     renderTable({ headers: breakdownSheet.headers, rows: breakdownSheet.rows });
+    renderTrafficChart(trafficSheet.rows);
 
   } catch (err) {
     showError(
@@ -584,10 +673,11 @@ async function loadLiveData() {
 
 function loadDemoData() {
   document.getElementById("demo-banner").style.display = "block";
-  renderHero(DEMO_DATA.kpis);
+  renderHero(DEMO_DATA.kpis, { units: 312, dollars: 14040 });
   renderKPIs(DEMO_DATA.kpis);
   renderChart(DEMO_DATA.trends);
   renderTable(DEMO_DATA.breakdown);
+  renderTrafficChart(DEMO_DATA.traffic);
 }
 
 renderHeader();
