@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #F8FAFC;
+      color: #1E293B;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #0F172A;
+      letter-spacing: -0.01em;
+    }
+
+    .header-title p {
+      font-size: 0.875rem;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    .last-updated {
+      font-size: 0.8rem;
+      color: #94A3B8;
+      text-align: right;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .kpi-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0F172A;
+      line-height: 1.1;
+      margin-top: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-dollar {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #475569;
+      margin-top: 3px;
+    }
+
+    .kpi-delta {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .kpi-delta.positive { background: #DCFCE7; color: #16A34A; }
+    .kpi-delta.negative { background: #FEE2E2; color: #DC2626; }
+    .kpi-delta.neutral  { background: #F1F5F9; color: #64748B; }
+
+    .chart-section, .table-section {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 12px;
+      border-bottom: 2px solid #E2E8F0;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    thead th:hover { color: #2563EB; }
+
+    thead th .sort-indicator {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0.4;
+      font-size: 0.65rem;
+    }
+
+    thead th.sort-asc .sort-indicator,
+    thead th.sort-desc .sort-indicator { opacity: 1; color: #2563EB; }
+
+    tbody tr:nth-child(even) { background: #F8FAFC; }
+    tbody tr:hover { background: #EFF6FF; }
+
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #334155;
+    }
+
+    tbody td:first-child { font-weight: 500; color: #0F172A; }
+
+    .error-state {
+      background: #FFF7ED;
+      border: 1px solid #FED7AA;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #9A3412;
+    }
+
+    .error-state strong { display: block; margin-bottom: 6px; font-size: 1rem; }
+    .error-state p { font-size: 0.875rem; line-height: 1.5; }
+
+    .demo-banner {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      color: #1D4ED8;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .hero-totals {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .hero-card {
+      background: #0F172A;
+      border-radius: 10px;
+      padding: 28px 32px;
+      color: #FFFFFF;
+    }
+
+    .hero-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94A3B8;
+      margin-bottom: 10px;
+    }
+
+    .hero-value {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #FFFFFF;
+    }
+
+    @media (max-width: 640px) {
+      header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .last-updated { text-align: left; }
+      .kpi-value { font-size: 1.6rem; }
+      .hero-totals { grid-template-columns: 1fr; }
+      .hero-value { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-title">
+      <h1 id="header-title">Loading…</h1>
+      <p id="header-subtitle"></p>
+    </div>
+    <div class="last-updated" id="last-updated"></div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner" style="display:none">
+    Demo mode — showing sample data. Set <code>DEMO_MODE: false</code> and add your Sheet ID to connect live data.
+  </div>
+
+  <div id="error-container"></div>
+
+  <div id="hero-totals" class="hero-totals"></div>
+
+  <div id="kpi-grid" class="kpi-grid"></div>
+
+  <div class="chart-section">
+    <div class="section-title">Performance Over Time</div>
+    <div class="chart-container">
+      <canvas id="trends-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-section">
+    <div class="section-title">Channel Breakdown</div>
+    <div id="breakdown-table-container"></div>
+  </div>
+
+</div>
+
+<script>
+const CONFIG = {
+  SHEET_ID: "1IVeSF2aFYITXhwOTi_qTj2aKlefwSZ-vGUjlqVQ5OzE",
+  CLIENT_NAME: "CB4BC",
+  REPORT_MONTH: "May 2026",
+  DEMO_MODE: false
+};
+
+const DEMO_DATA = {
+  kpis: [
+    { metric: "Total Reach",  value: "84,200",  rawValue: "84200",  dollar: "$12,400", rawDollar: "12400", change: "+12%" },
+    { metric: "Impressions",  value: "312,000", rawValue: "312000", dollar: "$8,900",  rawDollar: "8900",  change: "+8%"  },
+    { metric: "Link Clicks",  value: "4,850",   rawValue: "4850",   dollar: "$3,200",  rawDollar: "3200",  change: "-3%"  },
+    { metric: "Conversions",  value: "142",     rawValue: "142",    dollar: "$6,750",  rawDollar: "6750",  change: "+21%" }
+  ],
+  trends: {
+    headers: ["Month", "Reach", "Impressions", "Clicks"],
+    rows: [
+      ["Dec 2025", "52000", "190000", "3100"],
+      ["Jan 2026", "58000", "215000", "3400"],
+      ["Feb 2026", "63000", "248000", "3800"],
+      ["Mar 2026", "70000", "275000", "4200"],
+      ["Apr 2026", "75000", "289000", "5000"],
+      ["May 2026", "84200", "312000", "4850"]
+    ]
+  },
+  breakdown: {
+    headers: ["Channel", "Reach", "Impressions", "Clicks"],
+    rows: [
+      ["Organic Search", "28,400", "105,000", "2,100"],
+      ["Paid Social",    "31,600", "128,000", "1,540"],
+      ["Email",          "12,800",  "42,000",    "890"],
+      ["Direct",          "7,200",  "24,000",    "220"],
+      ["Referral",        "4,200",  "13,000",    "100"]
+    ]
+  }
+};
+
+const CHART_COLOURS = [
+  "#2563EB", "#16A34A", "#D97706", "#7C3AED", "#DB2777"
+];
+
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+// GViz always calls google.visualization.Query.setResponse — set up a router for it once
+let _gvizCounter = 0;
+const _gvizPending = {};
+if (!window.google) window.google = {};
+if (!window.google.visualization) window.google.visualization = {};
+if (!window.google.visualization.Query) window.google.visualization.Query = {};
+window.google.visualization.Query.setResponse = function(data) {
+  const handler = _gvizPending[data.reqId];
+  if (handler) { delete _gvizPending[data.reqId]; handler(data); }
+};
+
+function fetchSheet(sheetName) {
+  return new Promise((resolve, reject) => {
+    const id = String(++_gvizCounter);
+    const script = document.createElement("script");
+    const timer = setTimeout(() => {
+      delete _gvizPending[id];
+      script.remove();
+      reject(new Error("Request timed out — check Sheet ID and sharing settings"));
+    }, 10000);
+
+    _gvizPending[id] = function(data) {
+      clearTimeout(timer);
+      script.remove();
+      if (data.status === "error") {
+        reject(new Error(`Tab "${sheetName}" not found or sheet not accessible`));
+        return;
+      }
+      try {
+        const headers = data.table.cols.map(c => c.label);
+        const rows = (data.table.rows || []).map(r =>
+          r.c.map(cell => {
+          if (!cell || cell.v === null || cell.v === undefined) return "";
+          if (typeof cell.v === "number") return String(cell.v);
+          const str = String(cell.v);
+          if (/^Date\(/.test(str)) return cell.f != null ? String(cell.f) : str;
+          return str;
+        })
+        );
+        resolve({ headers, rows });
+      } catch (e) {
+        reject(new Error("Could not parse sheet data"));
+      }
+    };
+
+    script.onerror = function() {
+      clearTimeout(timer);
+      delete _gvizPending[id];
+      script.remove();
+      reject(new Error("Sheet not accessible — ensure sharing is set to Anyone with the link → Viewer"));
+    };
+
+    script.src = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=reqId:${id}&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
+    document.head.appendChild(script);
+  });
+}
+
+function showError(message) {
+  document.getElementById("error-container").innerHTML = `
+    <div class="error-state">
+      <strong>Could not load data</strong>
+      <p>${message}</p>
+    </div>`;
+}
+
+function renderHeader(lastUpdated) {
+  document.getElementById("header-title").textContent =
+    `${CONFIG.CLIENT_NAME} · Marketing Report`;
+  document.getElementById("header-subtitle").textContent = CONFIG.REPORT_MONTH;
+  document.getElementById("last-updated").textContent =
+    lastUpdated ? `Data updated ${lastUpdated}` : "";
+  document.title = `${CONFIG.CLIENT_NAME} — Marketing Report`;
+}
+
+function deltaClass(change) {
+  if (!change) return "neutral";
+  if (change.startsWith("+")) return "positive";
+  if (change.startsWith("-")) return "negative";
+  return "neutral";
+}
+
+function renderHero(kpis) {
+  const totalUnits = kpis.reduce((sum, k) => sum + (parseFloat(k.rawValue) || 0), 0);
+  const totalSales = kpis.reduce((sum, k) => sum + (parseFloat(k.rawDollar) || 0), 0);
+  document.getElementById("hero-totals").innerHTML = `
+    <div class="hero-card">
+      <div class="hero-label">Total Units Sold</div>
+      <div class="hero-value">${totalUnits.toLocaleString()}</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-label">Total Sales</div>
+      <div class="hero-value">$${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    </div>
+  `;
+}
+
+function renderKPIs(kpis) {
+  const grid = document.getElementById("kpi-grid");
+  grid.innerHTML = kpis.map(kpi => `
+    <div class="kpi-card">
+      <div class="kpi-label">${esc(kpi.metric)}</div>
+      <div class="kpi-value">${esc(kpi.value)}</div>
+      ${kpi.dollar ? `<div class="kpi-dollar">${esc(kpi.dollar)}</div>` : ""}
+      ${kpi.change ? `<span class="kpi-delta ${deltaClass(kpi.change)}">${esc(kpi.change)}</span>` : ""}
+    </div>
+  `).join("");
+}
+
+function renderChart(trends) {
+  const labels  = trends.rows.map(r => r[0]);
+  const metrics = trends.headers.slice(1);
+
+  const datasets = metrics.map((label, i) => ({
+    label,
+    data: trends.rows.map(r => parseFloat(String(r[i + 1] ?? "").replace(/,/g, "")) || 0),
+    borderColor:     CHART_COLOURS[i % CHART_COLOURS.length],
+    backgroundColor: CHART_COLOURS[i % CHART_COLOURS.length] + "18",
+    borderWidth: 2,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    fill: false,
+    tension: 0.3
+  }));
+
+  new Chart(document.getElementById("trends-chart"), {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            padding: 20,
+            font: { size: 12, family: "system-ui, -apple-system, sans-serif" },
+            color: "#475569"
+          }
+        },
+        tooltip: {
+          backgroundColor: "#1E293B",
+          titleColor: "#F1F5F9",
+          bodyColor: "#CBD5E1",
+          padding: 12,
+          cornerRadius: 6
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "#F1F5F9" },
+          ticks: { color: "#64748B", font: { size: 12 } }
+        },
+        y: {
+          grid: { color: "#F1F5F9" },
+          ticks: {
+            color: "#64748B",
+            font: { size: 12 },
+            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + "k" : v
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderTable(breakdown) {
+  let sortCol = -1;
+  let sortAsc = true;
+
+  function buildTable(data) {
+    const sorted = sortCol === -1 ? [...data.rows] : [...data.rows].sort((a, b) => {
+      const av = parseFloat(a[sortCol].replace(/,/g, ""));
+      const bv = parseFloat(b[sortCol].replace(/,/g, ""));
+      const isNum = !isNaN(av) && !isNaN(bv);
+      if (isNum) return sortAsc ? av - bv : bv - av;
+      return sortAsc ? a[sortCol].localeCompare(b[sortCol]) : b[sortCol].localeCompare(a[sortCol]);
+    });
+
+    const ths = data.headers.map((h, i) => {
+      const cls = i === sortCol ? (sortAsc ? "sort-asc" : "sort-desc") : "";
+      const arrow = i === sortCol ? (sortAsc ? "&#9650;" : "&#9660;") : "&#9650;";
+      return `<th class="${cls}" data-col="${i}">${esc(h)}<span class="sort-indicator">${arrow}</span></th>`;
+    }).join("");
+
+    const trs = sorted.map(row =>
+      `<tr>${row.map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>`
+    ).join("");
+
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+  }
+
+  const container = document.getElementById("breakdown-table-container");
+  container.innerHTML = buildTable(breakdown);
+
+  container.addEventListener("click", e => {
+    const th = e.target.closest("th");
+    if (!th) return;
+    const col = parseInt(th.dataset.col, 10);
+    if (sortCol === col) {
+      sortAsc = !sortAsc;
+    } else {
+      sortCol = col;
+      sortAsc = true;
+    }
+    container.innerHTML = buildTable(breakdown);
+  });
+}
+
+async function loadLiveData() {
+  try {
+    const [kpiSheet, trendsSheet, breakdownSheet] = await Promise.all([
+      fetchSheet("KPIs"),
+      fetchSheet("Trends"),
+      fetchSheet("Breakdown")
+    ]);
+
+    let lastUpdated = "";
+    const kpis = kpiSheet.rows
+      .filter(r => {
+        if (r[0].trim().toLowerCase().startsWith("last updated")) {
+          lastUpdated = r[0].replace(/^last updated\s*:?\s*/i, "").trim();
+          return false;
+        }
+        return true;
+      })
+      .map(r => {
+        const raw = r[1];
+        const num = Number(raw);
+        const formatted = (raw !== "" && !isNaN(num)) ? num.toLocaleString() : raw;
+
+        const rawChange = r[2] || "";
+        const numChange = Number(rawChange);
+        let change = "";
+        if (rawChange !== "") {
+          if (!isNaN(numChange)) {
+            const pct = Math.round(numChange * 100);
+            change = (pct >= 0 ? "+" : "") + pct + "%";
+          } else {
+            change = rawChange;
+          }
+        }
+
+        const rawDollar = r[3] || "";
+        const numDollar = Number(rawDollar);
+        const dollar = (rawDollar !== "" && !isNaN(numDollar))
+          ? "$" + numDollar.toLocaleString()
+          : rawDollar;
+
+        return {
+          metric: r[0],
+          value:  formatted,
+          rawValue: raw,
+          dollar: dollar || "",
+          rawDollar: rawDollar,
+          change
+        };
+      });
+
+    renderHeader(lastUpdated);
+    renderHero(kpis);
+    renderKPIs(kpis);
+    renderChart({ headers: trendsSheet.headers, rows: trendsSheet.rows });
+    renderTable({ headers: breakdownSheet.headers, rows: breakdownSheet.rows });
+
+  } catch (err) {
+    showError(
+      "Check the Sheet ID in the config and ensure the sheet is shared as Anyone with the link → Viewer via Settings → Share. " +
+      `(${err.message})`
+    );
+  }
+}
+
+function loadDemoData() {
+  document.getElementById("demo-banner").style.display = "block";
+  renderHero(DEMO_DATA.kpis);
+  renderKPIs(DEMO_DATA.kpis);
+  renderChart(DEMO_DATA.trends);
+  renderTable(DEMO_DATA.breakdown);
+}
+
+renderHeader();
+
+if (CONFIG.DEMO_MODE) {
+  loadDemoData();
+} else {
+  loadLiveData();
+}
+</script>
+</body>
+</html>
