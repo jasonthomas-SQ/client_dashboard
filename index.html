@@ -419,7 +419,9 @@ function deltaClass(change) {
 }
 
 function renderHero(kpis, bundle) {
-  const totalUnits = kpis.reduce((sum, k) => sum + (parseFloat(k.rawValue) || 0), 0);
+  const totalUnits = kpis
+    .filter(k => !k.rawDollar && !/stock/i.test(k.metric))
+    .reduce((sum, k) => sum + (parseFloat(k.rawValue) || 0), 0);
   const totalSales = kpis
     .filter(k => !/stock/i.test(k.metric))
     .reduce((sum, k) => sum + (parseFloat(k.rawDollar) || 0), 0);
