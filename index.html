@@ -427,7 +427,7 @@ function renderHero(kpis, bundle) {
       <div class="hero-value">${totalUnits.toLocaleString()}</div>
     </div>
     <div class="hero-card">
-      <div class="hero-label">Total Sales</div>
+      <div class="hero-label">Total Money Received</div>
       <div class="hero-value">$${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
     ${bundleCard}
@@ -447,9 +447,11 @@ function renderKPIs(kpis) {
 
 function renderChart(trends) {
   const labels  = trends.rows.map(r => r[0]);
-  const metrics = trends.headers.slice(1);
+  const metrics = trends.headers.slice(1)
+    .map((label, i) => ({ label, i }))
+    .filter(({ label }) => label && label.trim() !== "");
 
-  const datasets = metrics.map((label, i) => ({
+  const datasets = metrics.map(({ label, i }) => ({
     label,
     data: trends.rows.map(r => parseFloat(String(r[i + 1] ?? "").replace(/,/g, "")) || 0),
     borderColor:     CHART_COLOURS[i % CHART_COLOURS.length],
