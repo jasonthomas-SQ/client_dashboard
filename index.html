@@ -419,12 +419,12 @@ function deltaClass(change) {
 }
 
 function renderHero(kpis, bundle) {
-  const totalUnits = kpis
-    .filter(k => !k.rawDollar && !/stock/i.test(k.metric))
-    .reduce((sum, k) => sum + (parseFloat(k.rawValue) || 0), 0);
-  const totalSales = kpis
-    .filter(k => !/stock/i.test(k.metric))
-    .reduce((sum, k) => sum + (parseFloat(k.rawDollar) || 0), 0);
+  // Units: sheet col B, rows 2,3,4,5,7 → kpis indices 0,1,2,3,5
+  // Dollars: sheet col D, rows 2,3,4,5,6,7,8 → kpis indices 0,1,2,3,4,5,6
+  const totalUnits = [0,1,2,3,5]
+    .reduce((sum, i) => sum + (parseFloat(kpis[i]?.rawValue) || 0), 0);
+  const totalSales = [0,1,2,3,4,5,6]
+    .reduce((sum, i) => sum + (parseFloat(kpis[i]?.rawDollar) || 0), 0);
   const bundleCard = bundle ? `
     <div class="hero-card">
       <div class="hero-label">Bundle Sales</div>
