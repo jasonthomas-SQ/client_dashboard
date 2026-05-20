@@ -3,708 +3,1291 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marketing Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://api.clickup.com; img-src 'self' data: https://attachments.clickup.com https://cdn.prod.website-files.com; font-src 'none';">
+  <title>Prime Financial — Project Status</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #EFF8F7;
-      color: #1E293B;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #FFFFFF;
+      color: #2C2C2C;
       min-height: 100vh;
     }
 
-    .page {
+    /* ── Header ── */
+    .site-header {
+      background: #006B5C;
+      padding: 0 32px;
+    }
+
+    .header-inner {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 32px 24px;
-    }
-
-    header {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 32px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #C8EEEC;
+      padding: 20px 0;
+      gap: 24px;
     }
 
-    .header-title h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #1E8C86;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .header-logo img {
+      height: 32px;
+      width: auto;
+      display: block;
+    }
+
+    .header-divider {
+      width: 1px;
+      height: 28px;
+      background: rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      font-weight: 600;
       letter-spacing: -0.01em;
     }
 
-    .header-title p {
-      font-size: 0.875rem;
-      color: #2BA8A2;
-      margin-top: 2px;
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
     }
 
-    .last-updated {
-      font-size: 0.8rem;
-      color: #64748B;
-      text-align: right;
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .kpi-card {
-      background: #FFFFFF;
-      border: 1px solid #C8EEEC;
-      border-left: 6px solid #3CC4BD;
-      border-radius: 12px;
-      padding: 20px 24px;
-      box-shadow: 0 4px 20px rgba(43,168,162,0.10);
-    }
-
-    .kpi-label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #2BA8A2;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .kpi-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #1E8C86;
-      line-height: 1.1;
-      margin-top: 6px;
-      letter-spacing: -0.02em;
-    }
-
-    .kpi-dollar {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #475569;
-      margin-top: 3px;
-    }
-
-    .kpi-delta {
-      display: inline-block;
-      margin-top: 8px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 2px 10px;
-      border-radius: 999px;
-    }
-
-    .kpi-delta.positive { background: #D1FAF8; color: #1E8C86; }
-    .kpi-delta.negative { background: #FEE8E2; color: #D45233; }
-    .kpi-delta.neutral  { background: #F1F5F9; color: #64748B; }
-
-    .chart-section, .table-section {
-      background: #FFFFFF;
-      border: 1px solid #C8EEEC;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(43,168,162,0.08);
-    }
-
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #1E8C86;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px dashed #C8EEEC;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 300px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-    }
-
-    thead th {
-      text-align: left;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #2BA8A2;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 8px 12px;
-      border-bottom: 2px solid #C8EEEC;
-      cursor: pointer;
-      user-select: none;
+    .last-synced {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
       white-space: nowrap;
     }
 
-    thead th:hover { color: #1E8C86; }
-
-    thead th .sort-indicator {
-      display: inline-block;
-      margin-left: 4px;
-      opacity: 0.4;
-      font-size: 0.65rem;
-    }
-
-    thead th.sort-asc .sort-indicator,
-    thead th.sort-desc .sort-indicator { opacity: 1; color: #FFD23F; }
-
-    tbody tr:nth-child(even) { background: #F4FDFB; }
-    tbody tr:hover { background: #E8F6F5; }
-
-    tbody td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #E8F6F5;
-      color: #334155;
-    }
-
-    tbody td:first-child { font-weight: 600; color: #1E8C86; }
-
-    .error-state {
-      background: #FFF8E7;
-      border: 1px solid #FFD23F;
-      border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-      color: #9A3412;
-    }
-
-    .error-state strong { display: block; margin-bottom: 6px; font-size: 1rem; }
-    .error-state p { font-size: 0.875rem; line-height: 1.5; }
-
-    .demo-banner {
-      background: #E8F6F5;
-      border: 1px solid #3CC4BD;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 0.8rem;
-      color: #1E8C86;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    .hero-totals {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .hero-card {
-      background: linear-gradient(135deg, #2BA8A2 0%, #1E8C86 100%);
-      border-radius: 16px;
-      padding: 28px 32px;
+    .toggle-completed-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
       color: #FFFFFF;
-      box-shadow: 0 8px 32px rgba(43,168,162,0.30);
+      font-size: 0.8rem;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 6px 14px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s;
+      white-space: nowrap;
     }
 
-    .hero-label {
+    .toggle-completed-btn:hover {
+      background: rgba(255,255,255,0.22);
+    }
+
+    .toggle-completed-btn.active {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── Loading / Error states ── */
+    .state-panel {
+      background: #F8F8F8;
+      border: 1px solid #E5E5E5;
+      padding: 40px 32px;
+      text-align: center;
+      border-radius: 3px;
+      margin-top: 24px;
+    }
+
+    .state-panel--error {
+      background: #FFF7F7;
+      border-color: #FECACA;
+    }
+
+    .state-panel__title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2C2C2C;
+      margin-bottom: 8px;
+    }
+
+    .state-panel--error .state-panel__title {
+      color: #7F1D1D;
+    }
+
+    .state-panel__body {
+      font-size: 0.875rem;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+
+    .state-panel--error .state-panel__body {
+      color: #991B1B;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #E5E5E5;
+      border-top-color: #006B5C;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Retainer bar ── */
+    .retainer-wrap {
+      margin-bottom: 28px;
+      background: #F8F8F8;
+      border: 1px solid #E5E5E5;
+      border-radius: 2px;
+      padding: 20px 24px;
+    }
+
+    .retainer-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .retainer-bar-track {
+      flex: 1;
+      height: 10px;
+      background: #E5E5E5;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .retainer-bar-fill {
+      height: 100%;
+      background: #006B5C;
+      border-radius: 5px;
+      transition: width 0.4s ease;
+    }
+
+    .retainer-bar--over .retainer-bar-fill {
+      background: #DC2626;
+    }
+
+    .retainer-pct {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #2C2C2C;
+      white-space: nowrap;
+    }
+
+    .retainer-over-callout {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #DC2626;
+      white-space: nowrap;
+    }
+
+    .retainer-labels {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .retainer-label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .retainer-label__key {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9CA3AF;
+    }
+
+    .retainer-label__val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2C2C2C;
+      letter-spacing: -0.02em;
+    }
+
+    .retainer-label__val--over {
+      color: #DC2626;
+    }
+
+    /* ── Job list ── */
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid #E5E5E5;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .job-row {
+      background: #FFFFFF;
+      border-bottom: 1px solid #E5E5E5;
+    }
+
+    .job-row:last-child {
+      border-bottom: none;
+    }
+
+    /* 9-column grid: Chevron / Name / Status / Assignees / Updated / Due / Subtasks / Hours / $ Value */
+    .job-row-header {
+      display: grid;
+      grid-template-columns: 28px 1fr 110px 140px 90px 70px 60px 80px 90px;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s;
+    }
+
+    .job-row-header:hover {
+      background: #F8F8F8;
+    }
+
+    .job-row.is-expanded .job-row-header {
+      background: #F8F8F8;
+      border-bottom: 1px solid #E5E5E5;
+    }
+
+    .chevron {
+      color: #9CA3AF;
+      font-size: 0.65rem;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .job-row.is-expanded .chevron {
+      transform: rotate(90deg);
+    }
+
+    .job-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #2C2C2C;
+      line-height: 1.35;
+    }
+
+    /* ── Status badge ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: #FFFFFF;
+    }
+
+    /* ── Assignees ── */
+    .assignees {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .avatar-stack {
+      display: flex;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      object-fit: cover;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .avatar-initials {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      flex-shrink: 0;
+      background: #006B5C;
+    }
+
+    .assignee-name {
+      font-size: 0.8rem;
+      color: #6B7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80px;
+    }
+
+    /* ── Meta columns ── */
+    .meta-cell {
+      font-size: 0.8rem;
+      color: #6B7280;
+      white-space: nowrap;
+    }
+
+    .meta-cell--muted {
+      color: #9CA3AF;
+    }
+
+    /* ── Hours / value cells ── */
+    .hours-cell,
+    .value-cell {
+      font-size: 0.8rem;
+      color: #2C2C2C;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .hours-cell--muted,
+    .value-cell--muted {
+      color: #9CA3AF;
+      font-weight: 400;
+    }
+
+    /* ── Subtask count badge ── */
+    .subtask-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: #F3F4F6;
+      color: #6B7280;
+      white-space: nowrap;
+    }
+
+    /* ── Subtask rows ── */
+    .subtask-list {
+      display: none;
+    }
+
+    .job-row.is-expanded .subtask-list {
+      display: block;
+    }
+
+    .subtask-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 110px 140px 90px 70px 60px 80px 90px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px 10px 40px;
+      background: #FAFAFA;
+      border-top: 1px solid #F3F4F6;
+    }
+
+    .subtask-row:hover {
+      background: #F5F5F5;
+    }
+
+    .subtask-name {
+      font-size: 0.82rem;
+      color: #4B5563;
+      line-height: 1.35;
+    }
+
+    /* ── Column header bar ── */
+    .list-header {
+      display: grid;
+      grid-template-columns: 28px 1fr 110px 140px 90px 70px 60px 80px 90px;
+      gap: 12px;
+      padding: 9px 16px;
+      background: #F8F8F8;
+      border: 1px solid #E5E5E5;
+      border-bottom: none;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .col-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #9CA3AF;
+    }
+
+    .col-label--sortable {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: color 0.1s;
+    }
+
+    .col-label--sortable:hover { color: #6B7280; }
+
+    .col-label--active { color: #2C2C2C; }
+
+    .sort-icon {
+      font-size: 0.55rem;
+      opacity: 0.3;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .col-label--active .sort-icon {
+      opacity: 1;
+      color: #006B5C;
+    }
+
+    /* ── Totals row ── */
+    .totals-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 110px 140px 90px 70px 60px 80px 90px;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #F0F4F2;
+      border-top: 2px solid #D1D5DB;
+      border-radius: 0 0 2px 2px;
+    }
+
+    .totals-row__label {
       font-size: 0.8rem;
       font-weight: 700;
+      color: #2C2C2C;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #B2E8E6;
-      margin-bottom: 10px;
+      letter-spacing: 0.04em;
     }
 
-    .hero-value {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1;
-      color: #FFFFFF;
+    .totals-row__hours {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #2C2C2C;
     }
 
-    .hero-sub {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #B2E8E6;
+    .totals-row__value {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #006B5C;
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      margin-top: 48px;
+      padding: 20px 24px;
+      background: #1A1A1A;
+      text-align: center;
+    }
+
+    .site-footer__text {
+      font-size: 0.78rem;
+      color: #6B7280;
+      letter-spacing: 0.02em;
+    }
+
+    .site-footer__small {
+      font-size: 0.72rem;
+      color: #4B5563;
       margin-top: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Responsive ── */
+    /*
+     * Column index reference (1-based, for nth-child):
+     * 1=chevron, 2=name, 3=status, 4=assignees, 5=updated, 6=due, 7=subtasks, 8=hours, 9=value
+     */
+    @media (max-width: 900px) {
+      .list-header,
+      .job-row-header,
+      .subtask-row,
+      .totals-row {
+        grid-template-columns: 28px 1fr 110px 140px 90px 70px 60px;
+      }
+
+      /* Hide Hours (col 8) and $ Value (col 9) on tablet */
+      .col-label:nth-child(8),
+      .col-label:nth-child(9),
+      .job-row-header > *:nth-child(8),
+      .job-row-header > *:nth-child(9),
+      .subtask-row > *:nth-child(8),
+      .subtask-row > *:nth-child(9),
+      .totals-row > *:nth-child(8),
+      .totals-row > *:nth-child(9) {
+        display: none;
+      }
     }
 
     @media (max-width: 640px) {
-      header { flex-direction: column; align-items: flex-start; gap: 8px; }
-      .last-updated { text-align: left; }
-      .kpi-value { font-size: 1.6rem; }
-      .hero-totals { grid-template-columns: 1fr; }
-      .hero-value { font-size: 2.2rem; }
+      .site-header { padding: 0 16px; }
+      .header-inner { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 0; }
+      .header-right { align-items: flex-start; }
+      .page { padding: 20px 16px 48px; }
+
+      .list-header,
+      .job-row-header,
+      .subtask-row,
+      .totals-row {
+        grid-template-columns: 28px 1fr 110px;
+      }
+
+      /* Hide updated (col 5), due (col 6), subtasks (col 7), hours (col 8), value (col 9) on mobile */
+      .col-label:nth-child(4),
+      .col-label:nth-child(5),
+      .col-label:nth-child(6),
+      .col-label:nth-child(7),
+      .col-label:nth-child(8),
+      .col-label:nth-child(9),
+      .job-row-header > *:nth-child(4),
+      .job-row-header > *:nth-child(5),
+      .job-row-header > *:nth-child(6),
+      .job-row-header > *:nth-child(7),
+      .job-row-header > *:nth-child(8),
+      .job-row-header > *:nth-child(9),
+      .subtask-row > *:nth-child(4),
+      .subtask-row > *:nth-child(5),
+      .subtask-row > *:nth-child(6),
+      .subtask-row > *:nth-child(7),
+      .subtask-row > *:nth-child(8),
+      .subtask-row > *:nth-child(9),
+      .totals-row > *:nth-child(4),
+      .totals-row > *:nth-child(5),
+      .totals-row > *:nth-child(6),
+      .totals-row > *:nth-child(7),
+      .totals-row > *:nth-child(8),
+      .totals-row > *:nth-child(9) {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-logo">
+        <img
+          src="https://cdn.prod.website-files.com/64c89052a181b6341601f415/64d18a35a59c8154fee67fb9_Prime_Financial-light.svg"
+          alt="Prime Financial"
+          width="140"
+          height="32"
+        >
+      </div>
+      <div class="header-divider"></div>
+      <div class="header-title">Project Status</div>
+    </div>
+    <div class="header-right">
+      <div class="last-synced" id="last-synced">Loading…</div>
+      <button class="toggle-completed-btn" id="toggle-completed-btn" type="button">
+        Show completed
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main content ── -->
 <div class="page">
 
-  <header>
-    <div class="header-title">
-      <h1 id="header-title">Loading…</h1>
-      <p id="header-subtitle"></p>
-    </div>
-    <div class="last-updated" id="last-updated"></div>
-  </header>
-
-  <div id="demo-banner" class="demo-banner" style="display:none">
-    Demo mode — showing sample data. Set <code>DEMO_MODE: false</code> and add your Sheet ID to connect live data.
+  <div id="retainer-strip" style="display:none">
+    <!-- Populated by renderRetainerBar() -->
   </div>
 
-  <div id="error-container"></div>
-
-  <div id="hero-totals" class="hero-totals"></div>
-
-  <div id="kpi-grid" class="kpi-grid"></div>
-
-  <div class="chart-section">
-    <div class="section-title">Performance Over Time</div>
-    <div class="chart-container">
-      <canvas id="trends-chart"></canvas>
-    </div>
-  </div>
-
-  <div class="table-section">
-    <div class="section-title">EDM Campaign Results</div>
-    <div id="breakdown-table-container"></div>
-  </div>
-
-  <div class="chart-section">
-    <div class="section-title">Website Traffic by Source</div>
-    <div class="chart-container">
-      <canvas id="traffic-chart"></canvas>
-    </div>
-  </div>
+  <div id="content-area"></div>
 
 </div>
 
+<!-- ── Footer ── -->
+<footer class="site-footer">
+  <p class="site-footer__text">Powered by Studio Quarantine</p>
+  <p class="site-footer__small">Hours sourced from ClickUp time tracking. Rate $150/hr ex GST.</p>
+</footer>
+
 <script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
 const CONFIG = {
-  SHEET_ID: "1IVeSF2aFYITXhwOTi_qTj2aKlefwSZ-vGUjlqVQ5OzE",
-  CLIENT_NAME: "CB4BC",
-  REPORT_MONTH: "May 2026",
-  DEMO_MODE: false
+  CLICKUP_TOKEN:      'pk_66703289_Z8HNUAG2Y5G8KMFIFQ27KHHTKVQIFEPL',  // Rotate to dedicated guest user when possible
+  LIST_ID:            '901610290461',
+  CLIENT_NAME:        'Prime Financial',
+  REPORT_DATE:        'May 2026',
+  HOURLY_RATE:        150,
+  BUDGET_TOTAL:       30000,
+  RETAINER_FIELD_ID:  '0a531f85-bfe5-4815-bd55-6f60081061e4',
 };
 
-const DEMO_DATA = {
-  kpis: [
-    { metric: "Total Reach",  value: "84,200",  rawValue: "84200",  dollar: "$12,400", rawDollar: "12400", change: "+12%" },
-    { metric: "Impressions",  value: "312,000", rawValue: "312000", dollar: "$8,900",  rawDollar: "8900",  change: "+8%"  },
-    { metric: "Link Clicks",  value: "4,850",   rawValue: "4850",   dollar: "$3,200",  rawDollar: "3200",  change: "-3%"  },
-    { metric: "Conversions",  value: "142",     rawValue: "142",    dollar: "$6,750",  rawDollar: "6750",  change: "+21%" }
-  ],
-  trends: {
-    headers: ["Month", "Reach", "Impressions", "Clicks"],
-    rows: [
-      ["Dec 2025", "52000", "190000", "3100"],
-      ["Jan 2026", "58000", "215000", "3400"],
-      ["Feb 2026", "63000", "248000", "3800"],
-      ["Mar 2026", "70000", "275000", "4200"],
-      ["Apr 2026", "75000", "289000", "5000"],
-      ["May 2026", "84200", "312000", "4850"]
-    ]
-  },
-  breakdown: {
-    headers: ["Channel", "Reach", "Impressions", "Clicks"],
-    rows: [
-      ["Organic Search", "28,400", "105,000", "2,100"],
-      ["Paid Social",    "31,600", "128,000", "1,540"],
-      ["Email",          "12,800",  "42,000",    "890"],
-      ["Direct",          "7,200",  "24,000",    "220"],
-      ["Referral",        "4,200",  "13,000",    "100"]
-    ]
-  },
-  traffic: [
-    ["Organic Search", "3,200"],
-    ["Email",          "1,840"],
-    ["Social Media",   "1,150"],
-    ["Direct",           "820"],
-    ["Referral",         "430"],
-    ["Paid",             "310"]
-  ]
-};
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let _allJobs    = [];     // post-retainer-filter job objects
+let _subtaskMap = {};     // parentId → [subtask, …]  (post-retainer-filter)
+let _showCompleted = false;
+let _sortCol = 'name';    // 'name' | 'status' | 'assignee' | 'updated' | 'due' | 'tasks' | 'hours' | 'value'
+let _sortDir = 'asc';
 
-const CHART_COLOURS = [
-  "#2BA8A2", "#FFD23F", "#EF6C4A", "#5DADE2", "#1E8C86"
-];
+// ─────────────────────────────────────────────
+// HELPERS — sanitisation
+// ─────────────────────────────────────────────
 
+/**
+ * Escape a string for safe HTML insertion.
+ */
 function esc(str) {
-  const d = document.createElement("div");
-  d.textContent = String(str);
+  const d = document.createElement('div');
+  d.textContent = String(str ?? '');
   return d.innerHTML;
 }
 
-// GViz always calls google.visualization.Query.setResponse — set up a router for it once
-let _gvizCounter = 0;
-const _gvizPending = {};
-if (!window.google) window.google = {};
-if (!window.google.visualization) window.google.visualization = {};
-if (!window.google.visualization.Query) window.google.visualization.Query = {};
-window.google.visualization.Query.setResponse = function(data) {
-  const handler = _gvizPending[data.reqId];
-  if (handler) { delete _gvizPending[data.reqId]; handler(data); }
-};
+/**
+ * Resolve the "Include in Retainer" custom field to a boolean.
+ * Handles drop_down, labels, checkbox, short_text/text field types.
+ * Returns false for any missing/null/unrecognised value — excluded by default.
+ */
+function resolveRetainerFlag(customFields) {
+  if (!Array.isArray(customFields)) return false;
+  const field = customFields.find(f => f.id === CONFIG.RETAINER_FIELD_ID);
+  if (!field || field.value === null || field.value === undefined) return false;
 
-function fetchSheet(sheetName) {
-  return new Promise((resolve, reject) => {
-    const id = String(++_gvizCounter);
-    const script = document.createElement("script");
-    const timer = setTimeout(() => {
-      delete _gvizPending[id];
-      script.remove();
-      reject(new Error("Request timed out — check Sheet ID and sharing settings"));
-    }, 10000);
+  const type = field.type;
 
-    _gvizPending[id] = function(data) {
-      clearTimeout(timer);
-      script.remove();
-      if (data.status === "error") {
-        reject(new Error(`Tab "${sheetName}" not found or sheet not accessible`));
-        return;
-      }
-      try {
-        const headers = data.table.cols.map(c => c.label);
-        const rows = (data.table.rows || []).map(r =>
-          r.c.map(cell => {
-          if (!cell || cell.v === null || cell.v === undefined) return "";
-          if (typeof cell.v === "number") return String(cell.v);
-          const str = String(cell.v);
-          if (/^Date\(/.test(str)) return cell.f != null ? String(cell.f) : str;
-          return str;
-        })
-        );
-        resolve({ headers, rows });
-      } catch (e) {
-        reject(new Error("Could not parse sheet data"));
-      }
-    };
+  if (type === 'drop_down') {
+    // value is an integer index into type_config.options
+    const idx = Number(field.value);
+    const options = field.type_config?.options;
+    if (!Array.isArray(options) || isNaN(idx)) return false;
+    const opt = options[idx];
+    return typeof opt?.name === 'string' && opt.name.trim().toLowerCase() === 'yes';
+  }
 
-    script.onerror = function() {
-      clearTimeout(timer);
-      delete _gvizPending[id];
-      script.remove();
-      reject(new Error("Sheet not accessible — ensure sharing is set to Anyone with the link → Viewer"));
-    };
+  if (type === 'labels') {
+    // value is an array of selected label IDs
+    const selected = Array.isArray(field.value) ? field.value : [];
+    const options  = field.type_config?.options;
+    if (!Array.isArray(options)) return false;
+    return selected.some(id => {
+      const opt = options.find(o => o.id === id);
+      return typeof opt?.name === 'string' && opt.name.trim().toLowerCase() === 'yes';
+    });
+  }
 
-    script.src = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=reqId:${id}&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
-    document.head.appendChild(script);
-  });
+  if (type === 'checkbox') {
+    return Boolean(field.value);
+  }
+
+  if (type === 'short_text' || type === 'text') {
+    const v = String(field.value).trim().toLowerCase();
+    return v === 'yes' || v === 'true' || v === '1';
+  }
+
+  return false;
 }
 
-function showError(message) {
-  document.getElementById("error-container").innerHTML = `
-    <div class="error-state">
-      <strong>Could not load data</strong>
-      <p>${message}</p>
+/**
+ * Extract only the permitted fields from a raw ClickUp task.
+ * Strips creator.email, comments, and raw custom_fields — only the
+ * resolved _includeInRetainer boolean and time_spent are kept.
+ */
+function sanitiseTask(raw) {
+  const timeSpentRaw = Number(raw.time_spent);
+  const timeSpent    = isNaN(timeSpentRaw) ? 0 : timeSpentRaw;
+
+  return {
+    id:                  raw.id,
+    name:                raw.name,
+    parent:              raw.parent ?? null,
+    status:              raw.status?.status ?? '',
+    assignees:           (raw.assignees ?? []).map(a => ({
+      username:       a.username ?? '',
+      profilePicture: a.profilePicture ?? null,
+      color:          a.color ?? '#006B5C',
+    })),
+    date_updated:        raw.date_updated ?? null,
+    due_date:            raw.due_date ?? null,
+    time_spent:          timeSpent,
+    _includeInRetainer:  resolveRetainerFlag(raw.custom_fields),
+  };
+}
+
+// ─────────────────────────────────────────────
+// STATUS MAPPING
+// ─────────────────────────────────────────────
+const STATUS_MAP = [
+  { match: 'in studio',      label: 'In Studio',      colour: '#3B82F6' },
+  { match: 'with client',    label: 'With Client',     colour: '#F59E0B' },
+  { match: 'ready to start', label: 'Ready to Start',  colour: '#F97316' },
+  { match: 'review',         label: 'Review',          colour: '#8B5CF6' },
+  { match: 'on hold',        label: 'On Hold',         colour: '#6B7280' },
+  { match: 'completed',      label: 'Completed',       colour: '#10B981' },
+  { match: 'active',         label: 'Active',          colour: '#3B82F6' },
+];
+
+function resolveStatus(rawStatus) {
+  const lower = rawStatus.toLowerCase();
+  for (const entry of STATUS_MAP) {
+    if (lower.includes(entry.match)) return entry;
+  }
+  return { label: rawStatus, colour: '#6B7280' };
+}
+
+function isCompleted(rawStatus) {
+  return rawStatus.toLowerCase().includes('completed');
+}
+
+// ─────────────────────────────────────────────
+// DATE FORMATTING
+// ─────────────────────────────────────────────
+const _relFmt = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+function relativeTime(msTimestamp) {
+  if (!msTimestamp) return '—';
+  const diffMs  = Number(msTimestamp) - Date.now();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHr  = Math.round(diffMin / 60);
+  const diffDay = Math.round(diffHr / 24);
+
+  if (Math.abs(diffSec) < 60)  return 'just now';
+  if (Math.abs(diffMin) < 60)  return _relFmt.format(diffMin, 'minute');
+  if (Math.abs(diffHr)  < 24)  return _relFmt.format(diffHr,  'hour');
+  if (Math.abs(diffDay) < 30)  return _relFmt.format(diffDay, 'day');
+
+  return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    .format(new Date(Number(msTimestamp)));
+}
+
+function formatDueDate(msTimestamp) {
+  if (!msTimestamp) return '—';
+  return new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    .format(new Date(Number(msTimestamp)));
+}
+
+function formatSyncTime() {
+  return new Intl.DateTimeFormat('en-AU', {
+    day:    'numeric',
+    month:  'long',
+    year:   'numeric',
+    hour:   'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date());
+}
+
+// ─────────────────────────────────────────────
+// NUMBER FORMATTING
+// ─────────────────────────────────────────────
+function formatHours(h) {
+  if (h === 0) return '—';
+  return h.toFixed(1) + 'h';
+}
+
+function formatDollars(d) {
+  return '$' + Math.round(d).toLocaleString('en-AU');
+}
+
+// ─────────────────────────────────────────────
+// RENDER — AVATAR
+// ─────────────────────────────────────────────
+function renderAssigneeAvatar(assignee) {
+  if (assignee.profilePicture) {
+    return `<img class="avatar" src="${esc(assignee.profilePicture)}" alt="${esc(assignee.username)}" loading="lazy">`;
+  }
+  const initials = (assignee.username || '?')
+    .split(/[\s._-]+/)
+    .slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? '')
+    .join('');
+  const bg = esc(assignee.color || '#006B5C');
+  return `<div class="avatar-initials" style="background:${bg}">${esc(initials)}</div>`;
+}
+
+function renderAssignees(assignees) {
+  if (!assignees || assignees.length === 0) {
+    return '<span class="meta-cell meta-cell--muted">—</span>';
+  }
+  const maxShow = 2;
+  const shown = assignees.slice(0, maxShow);
+  const avatars = shown.map(a => renderAssigneeAvatar(a)).join('');
+  const primaryName = assignees[0].username || '';
+  const extra = assignees.length > maxShow ? `<span class="assignee-name">+${assignees.length - maxShow}</span>` : '';
+  return `
+    <div class="assignees">
+      <div class="avatar-stack">${avatars}</div>
+      <span class="assignee-name">${esc(primaryName)}</span>
+      ${extra}
     </div>`;
 }
 
-function renderHeader(lastUpdated) {
-  document.getElementById("header-title").textContent =
-    `${CONFIG.CLIENT_NAME} · Marketing Report`;
-  document.getElementById("header-subtitle").textContent = CONFIG.REPORT_MONTH;
-  document.getElementById("last-updated").textContent =
-    lastUpdated ? `Data updated ${lastUpdated}` : "";
-  document.title = `${CONFIG.CLIENT_NAME} — Marketing Report`;
+// ─────────────────────────────────────────────
+// RENDER — BADGE
+// ─────────────────────────────────────────────
+function renderBadge(rawStatus) {
+  const { label, colour } = resolveStatus(rawStatus);
+  return `<span class="badge" style="background:${esc(colour)}">${esc(label)}</span>`;
 }
 
-function deltaClass(change) {
-  if (!change) return "neutral";
-  if (change.startsWith("+")) return "positive";
-  if (change.startsWith("-")) return "negative";
-  return "neutral";
+// ─────────────────────────────────────────────
+// RENDER — SUBTASK ROW
+// ─────────────────────────────────────────────
+function renderSubtaskRow(task) {
+  const subtaskCount = (_subtaskMap[task.id] || []).length;
+  const subtaskBadge = subtaskCount > 0
+    ? `<span class="subtask-badge">${subtaskCount} task${subtaskCount !== 1 ? 's' : ''}</span>`
+    : '<span class="meta-cell meta-cell--muted">—</span>';
+
+  const ownHours  = task.time_spent / 3600000;
+  const ownDollars = ownHours * CONFIG.HOURLY_RATE;
+  const hoursZero = ownHours === 0;
+
+  return `
+    <div class="subtask-row">
+      <div></div>
+      <div class="subtask-name">${esc(task.name)}</div>
+      ${renderBadge(task.status)}
+      ${renderAssignees(task.assignees)}
+      <span class="meta-cell">${esc(relativeTime(task.date_updated))}</span>
+      <span class="meta-cell">${esc(formatDueDate(task.due_date))}</span>
+      <div>${subtaskBadge}</div>
+      <span class="hours-cell${hoursZero ? ' hours-cell--muted' : ''}">${esc(formatHours(ownHours))}</span>
+      <span class="value-cell${hoursZero ? ' value-cell--muted' : ''}">${hoursZero ? '—' : esc(formatDollars(ownDollars))}</span>
+    </div>`;
 }
 
-function renderHero(kpis, bundle) {
-  // Units: sheet col B, rows 2,3,4,5,7 → kpis indices 0,1,2,3,5
-  // Dollars: sheet col D, rows 2,3,4,5,6,7,8 → kpis indices 0,1,2,3,4,5,6
-  const totalUnits = [0,1,2,3,5]
-    .reduce((sum, i) => sum + (parseFloat(kpis[i]?.rawValue) || 0), 0);
-  const totalSales = [0,1,2,3,4,5,6]
-    .reduce((sum, i) => sum + (parseFloat(kpis[i]?.rawDollar) || 0), 0);
-  const bundleCard = bundle ? `
-    <div class="hero-card">
-      <div class="hero-label">Bundle Sales</div>
-      <div class="hero-value">${Number(bundle.units).toLocaleString()}</div>
-      <div class="hero-sub">$${Number(bundle.dollars).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    </div>` : "";
-  document.getElementById("hero-totals").innerHTML = `
-    <div class="hero-card">
-      <div class="hero-label">Total Units Sold</div>
-      <div class="hero-value">${totalUnits.toLocaleString()}</div>
-    </div>
-    <div class="hero-card">
-      <div class="hero-label">Total Money Received</div>
-      <div class="hero-value">$${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-    </div>
-    ${bundleCard}
-  `;
+// ─────────────────────────────────────────────
+// RENDER — JOB ROW
+// ─────────────────────────────────────────────
+function renderJobRow(job) {
+  const subtasks = [...(_subtaskMap[job.id] || [])].sort((a, b) =>
+    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' })
+  );
+  const subtaskCount = subtasks.length;
+  const hasSubtasks  = subtaskCount > 0;
+  const subtaskBadge = hasSubtasks
+    ? `<span class="subtask-badge">${subtaskCount} task${subtaskCount !== 1 ? 's' : ''}</span>`
+    : '<span class="meta-cell meta-cell--muted">—</span>';
+
+  const subtaskRowsHtml = hasSubtasks
+    ? subtasks.map(st => renderSubtaskRow(st)).join('')
+    : '';
+
+  // Parent total hours = own time + sum of retained subtask time
+  const subtaskHoursMs = subtasks.reduce((sum, st) => sum + st.time_spent, 0);
+  const totalHours  = (job.time_spent + subtaskHoursMs) / 3600000;
+  const totalDollars = totalHours * CONFIG.HOURLY_RATE;
+  const hoursZero = totalHours === 0;
+
+  return `
+    <div class="job-row" data-job-id="${esc(job.id)}" data-total-hours="${totalHours}" data-total-dollars="${totalDollars}">
+      <div class="job-row-header" role="button" tabindex="0" aria-expanded="false">
+        <div class="chevron">&#9658;</div>
+        <div class="job-name">${esc(job.name)}</div>
+        ${renderBadge(job.status)}
+        ${renderAssignees(job.assignees)}
+        <span class="meta-cell">${esc(relativeTime(job.date_updated))}</span>
+        <span class="meta-cell">${esc(formatDueDate(job.due_date))}</span>
+        <div>${subtaskBadge}</div>
+        <span class="hours-cell${hoursZero ? ' hours-cell--muted' : ''}">${esc(formatHours(totalHours))}</span>
+        <span class="value-cell${hoursZero ? ' value-cell--muted' : ''}">${hoursZero ? '—' : esc(formatDollars(totalDollars))}</span>
+      </div>
+      <div class="subtask-list">
+        ${subtaskRowsHtml}
+      </div>
+    </div>`;
 }
 
-function renderKPIs(kpis) {
-  const grid = document.getElementById("kpi-grid");
-  grid.innerHTML = kpis.map(kpi => `
-    <div class="kpi-card">
-      <div class="kpi-label">${esc(kpi.metric)}</div>
-      <div class="kpi-value">${esc(kpi.value)}</div>
-      ${kpi.dollar ? `<div class="kpi-dollar">${esc(kpi.dollar)}</div>` : ""}
-    </div>
-  `).join("");
+// ─────────────────────────────────────────────
+// RENDER — JOB LIST
+// ─────────────────────────────────────────────
+function colHeader(label, col) {
+  const active = _sortCol === col;
+  const icon   = active && _sortDir === 'desc' ? '▼' : '▲';
+  const cls    = `col-label col-label--sortable${active ? ' col-label--active' : ''}`;
+  return `<div class="${esc(cls)}" data-sort="${esc(col)}">${esc(label)}<span class="sort-icon">${icon}</span></div>`;
 }
 
-function renderChart(trends) {
-  const labels  = trends.rows.map(r => r[0]);
-  const metrics = trends.headers.slice(1)
-    .map((label, i) => ({ label, i }))
-    .filter(({ label, i }) => {
-      if (!label || label.trim() === "") return false;
-      return trends.rows.some(r => {
-        const v = parseFloat(String(r[i + 1] ?? "").replace(/,/g, ""));
-        return !isNaN(v) && v !== 0;
-      });
-    });
-
-  const datasets = metrics.map(({ label, i }) => ({
-    label,
-    data: trends.rows.map(r => parseFloat(String(r[i + 1] ?? "").replace(/,/g, "")) || 0),
-    borderColor:     CHART_COLOURS[i % CHART_COLOURS.length],
-    backgroundColor: CHART_COLOURS[i % CHART_COLOURS.length] + "18",
-    borderWidth: 2,
-    pointRadius: 4,
-    pointHoverRadius: 6,
-    fill: false,
-    tension: 0.3
-  }));
-
-  new Chart(document.getElementById("trends-chart"), {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: {
-            padding: 20,
-            font: { size: 12, family: "system-ui, -apple-system, sans-serif" },
-            color: "#475569"
-          }
-        },
-        tooltip: {
-          backgroundColor: "#1E293B",
-          titleColor: "#F1F5F9",
-          bodyColor: "#CBD5E1",
-          padding: 12,
-          cornerRadius: 6
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: "#F1F5F9" },
-          ticks: { color: "#64748B", font: { size: 12 } }
-        },
-        y: {
-          grid: { color: "#F1F5F9" },
-          ticks: {
-            color: "#64748B",
-            font: { size: 12 },
-            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + "k" : v
-          }
-        }
-      }
-    }
-  });
+function computeTotals(jobs) {
+  // Totals always computed from the full post-retainer dataset —
+  // unaffected by the "Show completed" toggle.
+  let totalHours   = 0;
+  let totalDollars = 0;
+  for (const job of jobs) {
+    const subtasks = _subtaskMap[job.id] || [];
+    const subtaskMs = subtasks.reduce((sum, st) => sum + st.time_spent, 0);
+    const jobHours  = (job.time_spent + subtaskMs) / 3600000;
+    totalHours   += jobHours;
+    totalDollars += jobHours * CONFIG.HOURLY_RATE;
+  }
+  return { totalHours, totalDollars };
 }
 
-function renderTable(breakdown) {
-  let sortCol = -1;
-  let sortAsc = true;
+function renderTotalsRow(totals) {
+  const { totalHours, totalDollars } = totals;
+  return `
+    <div class="totals-row">
+      <div></div>
+      <div class="totals-row__label">Total</div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <span class="totals-row__hours">${totalHours.toFixed(1)}h</span>
+      <span class="totals-row__value">$${Math.round(totalDollars).toLocaleString('en-AU')}</span>
+    </div>`;
+}
 
-  function buildTable(data) {
-    const sorted = sortCol === -1 ? [...data.rows] : [...data.rows].sort((a, b) => {
-      const av = parseFloat(a[sortCol].replace(/,/g, ""));
-      const bv = parseFloat(b[sortCol].replace(/,/g, ""));
-      const isNum = !isNaN(av) && !isNaN(bv);
-      if (isNum) return sortAsc ? av - bv : bv - av;
-      return sortAsc ? a[sortCol].localeCompare(b[sortCol]) : b[sortCol].localeCompare(a[sortCol]);
-    });
-
-    const ths = data.headers.map((h, i) => {
-      const cls = i === sortCol ? (sortAsc ? "sort-asc" : "sort-desc") : "";
-      const arrow = i === sortCol ? (sortAsc ? "&#9650;" : "&#9660;") : "&#9650;";
-      return `<th class="${cls}" data-col="${i}">${esc(h)}<span class="sort-indicator">${arrow}</span></th>`;
-    }).join("");
-
-    const trs = sorted.map(row =>
-      `<tr>${row.map(cell => `<td>${esc(cell)}</td>`).join("")}</tr>`
-    ).join("");
-
-    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+function renderJobList(jobs, allJobs) {
+  if (jobs.length === 0) {
+    return `
+      <div class="state-panel">
+        <div class="state-panel__title">No active jobs</div>
+        <div class="state-panel__body">
+          ${_showCompleted ? 'No jobs found in this list.' : 'All jobs are complete. Use "Show completed" to view them.'}
+        </div>
+      </div>`;
   }
 
-  const container = document.getElementById("breakdown-table-container");
-  container.innerHTML = buildTable(breakdown);
+  const rowsHtml  = jobs.map(j => renderJobRow(j)).join('');
+  const totals    = computeTotals(allJobs);
+  const totalsHtml = renderTotalsRow(totals);
 
-  container.addEventListener("click", e => {
-    const th = e.target.closest("th");
-    if (!th) return;
-    const col = parseInt(th.dataset.col, 10);
-    if (sortCol === col) {
-      sortAsc = !sortAsc;
-    } else {
-      sortCol = col;
-      sortAsc = true;
-    }
-    container.innerHTML = buildTable(breakdown);
-  });
+  return `
+    <div class="list-header">
+      <div></div>
+      ${colHeader('Job',      'name')}
+      ${colHeader('Status',   'status')}
+      ${colHeader('Assignee', 'assignee')}
+      ${colHeader('Updated',  'updated')}
+      ${colHeader('Due',      'due')}
+      ${colHeader('Tasks',    'tasks')}
+      ${colHeader('Hours',    'hours')}
+      ${colHeader('$ Value',  'value')}
+    </div>
+    <div class="job-list" id="job-list">
+      ${rowsHtml}
+    </div>
+    ${totalsHtml}`;
 }
 
-function renderTrafficChart(rows) {
-  const labels   = rows.map(r => r[0]);
-  const values   = rows.map(r => parseFloat(String(r[1]).replace(/,/g, "")) || 0);
-  const maxVal   = Math.max(...values);
-  const colours  = values.map(v => {
-    const opacity = 0.4 + 0.6 * (v / (maxVal || 1));
-    return `rgba(37,99,235,${opacity.toFixed(2)})`;
-  });
+// ─────────────────────────────────────────────
+// RENDER — RETAINER BAR
+// ─────────────────────────────────────────────
+function renderRetainerBar(totals) {
+  const { totalDollars } = totals;
+  const budget     = CONFIG.BUDGET_TOTAL;
+  const isOver     = totalDollars > budget;
+  const fillPct    = Math.min((totalDollars / budget) * 100, 100);
+  const remaining  = Math.max(budget - totalDollars, 0);
+  const pctDisplay = ((totalDollars / budget) * 100).toFixed(1) + '%';
+  const overAmount = totalDollars - budget;
 
-  new Chart(document.getElementById("traffic-chart"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Sessions",
-        data: values,
-        backgroundColor: colours,
-        borderRadius: 4,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#1E293B",
-          titleColor: "#F1F5F9",
-          bodyColor: "#CBD5E1",
-          padding: 12,
-          cornerRadius: 6,
-          callbacks: { label: ctx => " " + ctx.parsed.x.toLocaleString() + " sessions" }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: "#F1F5F9" },
-          ticks: {
-            color: "#64748B",
-            font: { size: 12 },
-            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + "k" : v
-          }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: "#334155", font: { size: 13 } }
-        }
-      }
-    }
-  });
+  const overModifier = isOver ? ' retainer-bar--over' : '';
+  const overCallout  = isOver
+    ? `<span class="retainer-over-callout">${esc(formatDollars(overAmount))} over budget</span>`
+    : '';
+
+  const strip = document.getElementById('retainer-strip');
+  strip.innerHTML = `
+    <div class="retainer-wrap${overModifier}">
+      <div class="retainer-bar-row">
+        <div class="retainer-bar-track">
+          <div class="retainer-bar-fill" style="width:${fillPct.toFixed(2)}%"></div>
+        </div>
+        <span class="retainer-pct">${esc(pctDisplay)}</span>
+        ${overCallout}
+      </div>
+      <div class="retainer-labels">
+        <div class="retainer-label">
+          <span class="retainer-label__key">Used</span>
+          <span class="retainer-label__val${isOver ? ' retainer-label__val--over' : ''}">${esc(formatDollars(totalDollars))}</span>
+        </div>
+        <div class="retainer-label">
+          <span class="retainer-label__key">Remaining</span>
+          <span class="retainer-label__val">${esc(formatDollars(remaining))}</span>
+        </div>
+        <div class="retainer-label">
+          <span class="retainer-label__key">Budget</span>
+          <span class="retainer-label__val">${esc(formatDollars(budget))}</span>
+        </div>
+      </div>
+    </div>`;
+  strip.style.display = 'block';
 }
 
-async function loadLiveData() {
-  try {
-    const [kpiSheet, trendsSheet, breakdownSheet, trafficSheet] = await Promise.all([
-      fetchSheet("KPIs"),
-      fetchSheet("Trends"),
-      fetchSheet("Breakdown"),
-      fetchSheet("Traffic")
-    ]);
+// ─────────────────────────────────────────────
+// SORT
+// ─────────────────────────────────────────────
+function getJobTotalHours(job) {
+  const subtasks  = _subtaskMap[job.id] || [];
+  const subtaskMs = subtasks.reduce((sum, st) => sum + st.time_spent, 0);
+  return (job.time_spent + subtaskMs) / 3600000;
+}
 
-    let lastUpdated = "";
-    let bundleSales = null;
-    const kpis = kpiSheet.rows
-      .filter(r => {
-        if (r[0].trim().toLowerCase().startsWith("last updated")) {
-          lastUpdated = r[0].replace(/^last updated\s*:?\s*/i, "").trim();
-          return false;
-        }
-        if (/bundle\s*sales/i.test(r[0].replace(/\s+/g, " ").trim())) {
-          bundleSales = { units: r[1] || 0, dollars: r[3] || 0 };
-          return false;
-        }
-        return true;
-      })
-      .map(r => {
-        const raw = r[1];
-        const num = Number(raw);
-        const formatted = (raw !== "" && !isNaN(num)) ? num.toLocaleString() : raw;
-
-        const rawChange = r[2] || "";
-        const numChange = Number(rawChange);
-        let change = "";
-        if (rawChange !== "") {
-          if (!isNaN(numChange)) {
-            const pct = Math.round(numChange * 100);
-            change = (pct >= 0 ? "+" : "") + pct + "%";
-          } else {
-            change = rawChange;
-          }
-        }
-
-        const rawDollar = r[3] || "";
-        const numDollar = Number(rawDollar);
-        const dollar = (rawDollar !== "" && !isNaN(numDollar))
-          ? "$" + numDollar.toLocaleString()
-          : rawDollar;
-
-        return {
-          metric: r[0],
-          value:  formatted,
-          rawValue: raw,
-          dollar: dollar || "",
-          rawDollar: rawDollar,
-          change
-        };
-      });
-
-    renderHeader(lastUpdated);
-    renderHero(kpis, bundleSales);
-    renderKPIs(kpis);
-    renderChart({ headers: trendsSheet.headers, rows: trendsSheet.rows });
-    renderTable({ headers: breakdownSheet.headers, rows: breakdownSheet.rows });
-    renderTrafficChart(trafficSheet.rows);
-
-  } catch (err) {
-    showError(
-      "Check the Sheet ID in the config and ensure the sheet is shared as Anyone with the link → Viewer via Settings → Share. " +
-      `(${err.message})`
-    );
+function compareByCol(a, b) {
+  const dir = _sortDir === 'asc' ? 1 : -1;
+  switch (_sortCol) {
+    case 'name':
+      return dir * a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+    case 'status': {
+      const aLabel = resolveStatus(a.status).label;
+      const bLabel = resolveStatus(b.status).label;
+      return dir * aLabel.localeCompare(bLabel, 'en', { sensitivity: 'base' });
+    }
+    case 'assignee': {
+      const aName = a.assignees[0]?.username ?? '';
+      const bName = b.assignees[0]?.username ?? '';
+      return dir * aName.localeCompare(bName, 'en', { sensitivity: 'base' });
+    }
+    case 'updated': {
+      const aDate = Number(a.date_updated) || 0;
+      const bDate = Number(b.date_updated) || 0;
+      return dir * (aDate - bDate);
+    }
+    case 'due': {
+      // Null due dates sink to the bottom regardless of sort direction
+      const aDate = Number(a.due_date) || (dir > 0 ? Infinity : -Infinity);
+      const bDate = Number(b.due_date) || (dir > 0 ? Infinity : -Infinity);
+      return dir * (aDate - bDate);
+    }
+    case 'tasks': {
+      const aCount = (_subtaskMap[a.id] || []).length;
+      const bCount = (_subtaskMap[b.id] || []).length;
+      return dir * (aCount - bCount);
+    }
+    case 'hours': {
+      return dir * (getJobTotalHours(a) - getJobTotalHours(b));
+    }
+    case 'value': {
+      // $ value is directly proportional to hours — same sort result
+      return dir * (getJobTotalHours(a) - getJobTotalHours(b));
+    }
+    default:
+      return 0;
   }
 }
 
-function loadDemoData() {
-  document.getElementById("demo-banner").style.display = "block";
-  renderHero(DEMO_DATA.kpis, { units: 312, dollars: 14040 });
-  renderKPIs(DEMO_DATA.kpis);
-  renderChart(DEMO_DATA.trends);
-  renderTable(DEMO_DATA.breakdown);
-  renderTrafficChart(DEMO_DATA.traffic);
+// ─────────────────────────────────────────────
+// RENDER — FULL PAGE
+// ─────────────────────────────────────────────
+function renderPage() {
+  const jobs = _showCompleted
+    ? _allJobs
+    : _allJobs.filter(j => !isCompleted(j.status));
+
+  // Completed jobs always sink to the bottom regardless of active sort column
+  const sorted = [...jobs].sort((a, b) => {
+    const aComp = isCompleted(a.status) ? 1 : 0;
+    const bComp = isCompleted(b.status) ? 1 : 0;
+    if (aComp !== bComp) return aComp - bComp;
+    return compareByCol(a, b);
+  });
+
+  // Totals use the full post-retainer dataset, not the completed-filtered view
+  document.getElementById('content-area').innerHTML = renderJobList(sorted, _allJobs);
+  attachRowListeners();
+  attachSortListeners();
 }
 
-renderHeader();
-
-if (CONFIG.DEMO_MODE) {
-  loadDemoData();
-} else {
-  loadLiveData();
+// ─────────────────────────────────────────────
+// SORT LISTENERS
+// ─────────────────────────────────────────────
+function attachSortListeners() {
+  document.querySelectorAll('[data-sort]').forEach(el => {
+    el.addEventListener('click', () => {
+      const col = el.dataset.sort;
+      if (_sortCol === col) {
+        _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        _sortCol = col;
+        _sortDir = _sortCol === 'hours' || _sortCol === 'value' ? 'desc' : 'asc';
+      }
+      renderPage();
+    });
+  });
 }
+
+// ─────────────────────────────────────────────
+// EXPAND / COLLAPSE
+// ─────────────────────────────────────────────
+function attachRowListeners() {
+  const headers = document.querySelectorAll('.job-row-header');
+  headers.forEach(header => {
+    header.addEventListener('click', () => {
+      const row = header.closest('.job-row');
+      const expanded = row.classList.toggle('is-expanded');
+      header.setAttribute('aria-expanded', String(expanded));
+    });
+    header.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        header.click();
+      }
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+// TOGGLE COMPLETED
+// ─────────────────────────────────────────────
+document.getElementById('toggle-completed-btn').addEventListener('click', function() {
+  _showCompleted = !_showCompleted;
+  this.textContent = _showCompleted ? 'Hide completed' : 'Show completed';
+  this.classList.toggle('active', _showCompleted);
+  renderPage();
+});
+
+// ─────────────────────────────────────────────
+// LOADING / ERROR STATES
+// ─────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('content-area').innerHTML = `
+    <div class="state-panel">
+      <div class="spinner"></div>
+      <div class="state-panel__title">Loading project data…</div>
+    </div>`;
+}
+
+function showError(type) {
+  // Non-leaky: never expose error objects, status codes, or raw API messages to the DOM.
+  let msg;
+  if (type === '401') {
+    msg = 'Unable to load project data. Please contact your Studio Quarantine account manager.';
+  } else if (type === '429') {
+    msg = 'Data temporarily unavailable — please refresh in a moment.';
+  } else {
+    msg = 'Unable to load project data. Please contact your Studio Quarantine account manager.';
+  }
+  document.getElementById('content-area').innerHTML = `
+    <div class="state-panel state-panel--error">
+      <div class="state-panel__title">Could not load projects</div>
+      <div class="state-panel__body">${esc(msg)}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// API FETCH
+// ─────────────────────────────────────────────
+
+/*
+ * Fetch all tasks from the ClickUp list, paginated.
+ * ClickUp returns up to 100 tasks per page; we loop until last_page or short page.
+ * Safety cap at MAX_PAGES (20 → 2000 tasks).
+ */
+async function fetchTasks() {
+  const collected = [];
+  const MAX_PAGES = 20; // safety cap — 2000 tasks
+  let page = 0;
+  while (page < MAX_PAGES) {
+    const url = `https://api.clickup.com/api/v2/list/${CONFIG.LIST_ID}/task?subtasks=true&include_closed=true&page=${page}`;
+    const response = await fetch(url, {
+      headers: { Authorization: CONFIG.CLICKUP_TOKEN },
+    });
+
+    if (response.status === 401) { showError('401'); return null; }
+    if (response.status === 429) { showError('429'); return null; }
+    if (!response.ok)            { showError('other'); return null; }
+
+    const data  = await response.json();
+    const tasks = data.tasks ?? [];
+    collected.push(...tasks);
+
+    // ClickUp signals last page via `last_page: true` OR a short page (< 100 tasks)
+    if (data.last_page === true || tasks.length < 100) break;
+    page += 1;
+  }
+
+  if (page === MAX_PAGES) {
+    console.warn(`[Dashboard] Hit MAX_PAGES (${MAX_PAGES}) — more tasks may exist beyond ${MAX_PAGES * 100}.`);
+  }
+
+  return collected;
+}
+
+// ─────────────────────────────────────────────
+// DATA PROCESSING
+// ─────────────────────────────────────────────
+function processTasks(rawTasks) {
+  const allSanitised = rawTasks.map(raw => sanitiseTask(raw));
+
+  // Separate jobs (top-level) and subtasks
+  const rawJobs     = allSanitised.filter(t => !t.parent);
+  const rawSubtasks = allSanitised.filter(t =>  t.parent);
+
+  // Filter: only jobs where _includeInRetainer === true
+  const jobs = rawJobs.filter(j => j._includeInRetainer);
+  const jobIds = new Set(jobs.map(j => j.id));
+
+  // Build subtask map: only subtasks where _includeInRetainer === true
+  // AND whose parent is in the retained job set (orphaned subtasks naturally excluded)
+  const subtaskMap = {};
+  for (const st of rawSubtasks) {
+    if (!st._includeInRetainer) continue;
+    if (!jobIds.has(st.parent))  continue;
+    if (!subtaskMap[st.parent]) subtaskMap[st.parent] = [];
+    subtaskMap[st.parent].push(st);
+  }
+
+  return { jobs, subtaskMap };
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+async function init() {
+  if (CONFIG.CLICKUP_TOKEN === 'pk_YOUR_TOKEN_HERE') {
+    document.getElementById('content-area').innerHTML = `
+      <div class="state-panel state-panel--error">
+        <div class="state-panel__title">Dashboard not configured</div>
+        <div class="state-panel__body">Please add your ClickUp API token to the CONFIG block before deploying.</div>
+      </div>`;
+    return;
+  }
+
+  showLoading();
+  document.title = `${CONFIG.CLIENT_NAME} — Project Status`;
+
+  const rawTasks = await fetchTasks();
+  if (!rawTasks) return; // error already shown
+
+  const { jobs, subtaskMap } = processTasks(rawTasks);
+  _allJobs    = jobs;
+  _subtaskMap = subtaskMap;
+
+  // Update last synced timestamp
+  document.getElementById('last-synced').textContent = `Last updated: ${formatSyncTime()}`;
+
+  // Retainer bar always renders — zero-jobs state correctly shows $0 / $30k used.
+  // Render retainer bar (always from full post-retainer dataset)
+  const totals = computeTotals(_allJobs);
+  renderRetainerBar(totals);
+
+  renderPage();
+}
+
+init();
 </script>
 </body>
 </html>
